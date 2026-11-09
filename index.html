@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>家中茶櫃</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+/* =====================================================================
+   🍵 茶單資料 —— 要修改只需要改這一區！
+   ---------------------------------------------------------------------
+   ・茶喝完了：把該茶的  有貨: true  改成  有貨: false （茶罐會自動隱藏）
+   ・買到新茶：複製一整段 { ... }, 貼在清單中，改掉內容即可
+   ・類型 只能填："綠茶"、"烏龍"、"紅茶"（決定茶罐顏色與分類）
+   ・罐色（可不填）：想指定茶罐顏色時填色碼，例如 "#7a3b2e"
+   ・每段最後記得有逗號 ,
+   ===================================================================== */
+const 顯示喝完的茶 = false;   // 改成 true：喝完的茶會以灰色「已喝完」顯示
+
+const 茶單 = [
+  {
+    名稱: "八女福吉茶", 有貨: true, 類型: "綠茶",
+    產地: "日本・福岡八女",
+    特性: "來自日本高級茶產地福岡八女的綠茶。八女山區日夜溫差大、常起霧，茶葉甘甜、鮮味（旨味）飽滿。",
+    風味: ["青草香", "鮮甜", "微苦回甘"],
+    口感: "茶湯鮮綠，入口清爽，帶海苔與青草氣息，尾韻甘甜。",
+    沖泡: { 水溫: "70–80°C", 茶量: "4 g", 水量: "200 ml", 時間: "60 秒", 回沖: "2–3 次" },
+    簡易: "馬克杯：一小匙茶葉＋250 ml 約 75°C 的水，泡 1 分鐘後濾出。",
+    提醒: "水滾後先倒進杯子降溫再沖，太燙會苦澀。"
+  },
+  {
+    名稱: "八女玉露", 有貨: true, 類型: "綠茶",
+    產地: "日本・福岡八女",
+    特性: "日本綠茶的最高等級之一。採收前會遮光約 20 天，讓茶葉累積大量胺基酸，八女玉露更是品評會常勝軍。",
+    風味: ["海苔香", "濃郁鮮味", "甘甜"],
+    口感: "像高湯一樣的鮮味，濃稠甘甜，幾乎不苦澀。適合小杯慢慢品嚐。",
+    沖泡: { 水溫: "50–60°C", 茶量: "5 g", 水量: "60 ml", 時間: "2 分鐘", 回沖: "3 次，第二泡起 1 分鐘、水溫稍高" },
+    簡易: "用小杯子，水量少、水溫低，就是玉露好喝的秘訣。",
+    提醒: "千萬別用滾水！最後泡完的茶葉可以淋一點醬油直接吃。"
+  },
+  {
+    名稱: "嬉野玉露", 有貨: true, 類型: "綠茶",
+    產地: "日本・佐賀嬉野",
+    特性: "嬉野是九州著名的溫泉茶鄉，茶葉以捲曲圓潤聞名。此款採玉露的遮光栽培，鮮味柔和。",
+    風味: ["柔和鮮味", "淡淡海苔", "清甜"],
+    口感: "比八女玉露更圓潤溫和，順口不刺激，適合第一次喝玉露的朋友。",
+    沖泡: { 水溫: "55–60°C", 茶量: "5 g", 水量: "80 ml", 時間: "90 秒", 回沖: "3 次" },
+    簡易: "小杯、低溫、慢慢喝；可以和八女玉露一起對照品嚐。",
+    提醒: "茶壺與杯子先用熱水溫過，水再放涼到約 60°C。"
+  },
+  {
+    名稱: "蜜香紅茶", 有貨: true, 類型: "紅茶",
+    產地: "台灣",
+    特性: "夏季茶葉被小綠葉蟬叮咬後，茶樹會產生特殊香氣物質，製成紅茶就帶有天然的蜂蜜香，完全沒有加糖。",
+    風味: ["蜂蜜香", "熟果", "溫潤"],
+    口感: "茶湯琥珀紅亮，甜潤滑順、澀感低，連不太喝茶的人都容易喜歡。",
+    沖泡: { 水溫: "90–95°C", 茶量: "4 g", 水量: "150 ml", 時間: "40 秒", 回沖: "4–5 次，每泡加 10 秒" },
+    簡易: "馬克杯：3 g 茶葉＋300 ml 熱水，泡 3 分鐘後撈起。",
+    提醒: "放涼後蜜香更明顯，冷泡也很好喝。"
+  },
+  {
+    名稱: "日月潭18號紅玉", 有貨: true, 類型: "紅茶",
+    產地: "台灣・南投日月潭",
+    特性: "台茶 18 號「紅玉」，由緬甸大葉種與台灣原生山茶育成，是台灣最具代表性的紅茶品種。",
+    風味: ["肉桂香", "淡淡薄荷", "甜潤"],
+    口感: "茶湯鮮紅明亮，獨特的肉桂與薄荷涼感，喝完口中留有清甜。",
+    沖泡: { 水溫: "90–95°C", 茶量: "3 g", 水量: "150 ml", 時間: "40 秒", 回沖: "4 次" },
+    簡易: "馬克杯：3 g＋300 ml 熱水，2–3 分鐘就好，泡太久會澀。",
+    提醒: "大葉種容易出味，寧可泡淡一點；冷泡風味也很棒。"
+  },
+  {
+    名稱: "文山包種茶", 有貨: true, 類型: "烏龍",
+    產地: "台灣・新北坪林",
+    特性: "台灣北部的經典名茶，發酵程度很輕，茶葉呈條索狀，是最接近綠茶的烏龍茶。",
+    風味: ["清新花香", "蘭花", "清甜"],
+    口感: "茶湯蜜綠清澈，香氣清揚、口感清爽，適合飯後解膩。",
+    沖泡: { 水溫: "85–90°C", 茶量: "5 g", 水量: "150 ml", 時間: "50 秒", 回沖: "4–5 次" },
+    簡易: "馬克杯：4 g＋300 ml 約 90°C 熱水，泡 3 分鐘撈起。",
+    提醒: "條索狀茶葉體積大，看起來多但重量少，別放太滿。"
+  },
+  {
+    名稱: "福建烏龍茶", 有貨: true, 類型: "烏龍",
+    產地: "中國・福建",
+    特性: "福建是烏龍茶的故鄉，傳統製法焙火較重，耐泡度高。",
+    風味: ["焙火香", "堅果", "熟果"],
+    口感: "茶湯金黃偏琥珀，口感醇厚溫潤，帶焙火的溫暖香氣。",
+    沖泡: { 水溫: "95–100°C", 茶量: "6 g", 水量: "150 ml", 時間: "45 秒", 回沖: "5–6 次" },
+    簡易: "馬克杯：4 g＋300 ml 滾水，泡 3–4 分鐘撈起。",
+    提醒: "第一泡用滾水快速沖一下倒掉（溫潤泡），香氣更好。"
+  },
+  {
+    名稱: "梨山高山茶", 有貨: true, 類型: "烏龍",
+    產地: "台灣・台中梨山",
+    特性: "產自海拔約 2000 公尺以上的梨山，冷涼多霧，茶樹生長緩慢，葉肉厚實、膠質豐富，是頂級高山茶代表。",
+    風味: ["高山清香", "花果香", "甘甜"],
+    口感: "茶湯蜜黃透亮，香氣優雅，入口滑順飽滿，喉韻回甘持久。",
+    沖泡: { 水溫: "90–95°C", 茶量: "5 g（約鋪滿壺底）", 水量: "150 ml", 時間: "50–60 秒", 回沖: "6–7 次" },
+    簡易: "馬克杯：4 g＋300 ml 熱水，泡 4 分鐘撈起。",
+    提醒: "球狀茶葉會展開很多，放鋪滿壺底一層就夠。"
+  },
+  {
+    名稱: "六季香鐵觀音紅茶", 有貨: true, 類型: "紅茶",
+    產地: "台灣・台北木柵貓空",
+    特性: "來自貓空「六季香茶坊」，用木柵鐵觀音的茶種做成紅茶。茶樹約兩個月可採一次、一年六收，因此得名。",
+    風味: ["熟果酸韻", "蜜香", "溫潤"],
+    口感: "有紅茶的甜潤，又帶著鐵觀音特有的微微果酸韻，層次豐富。",
+    沖泡: { 水溫: "90–95°C", 茶量: "4 g", 水量: "150 ml", 時間: "40 秒", 回沖: "4–5 次" },
+    簡易: "馬克杯：3 g＋300 ml 熱水，泡 3 分鐘撈起。",
+    提醒: "可以和一般紅茶比較看看，感受鐵觀音的「觀音韻」。"
+  },
+  {
+    名稱: "六季香清香烏龍", 有貨: true, 類型: "烏龍",
+    產地: "台灣・台北木柵貓空",
+    特性: "同樣來自貓空「六季香茶坊」，發酵與焙火都較輕的清香型烏龍。",
+    風味: ["清雅花香", "甘甜", "順口"],
+    口感: "茶湯清澈，香氣明亮，喝起來輕盈不厚重，日常好入口。",
+    沖泡: { 水溫: "90–95°C", 茶量: "5 g", 水量: "150 ml", 時間: "50 秒", 回沖: "5–6 次" },
+    簡易: "馬克杯：4 g＋300 ml 熱水，泡 3–4 分鐘撈起。",
+    提醒: "清香型怕悶，泡好盡快把茶湯倒出來。"
+  },
+  {
+    名稱: "奇萊山高冷茶", 有貨: true, 類型: "烏龍",
+    產地: "台灣・南投仁愛奇萊山",
+    特性: "「高冷茶」指在高海拔、低溫環境生長的茶。奇萊山一帶雲霧繚繞，茶葉甜度高。",
+    風味: ["高山冷香", "清甜", "淡雅花香"],
+    口感: "口感細緻滑順，帶有高山茶特有的冷冽清香，回甘明顯。",
+    沖泡: { 水溫: "90–95°C", 茶量: "5 g", 水量: "150 ml", 時間: "50–60 秒", 回沖: "6 次" },
+    簡易: "馬克杯：4 g＋300 ml 熱水，泡 4 分鐘撈起。",
+    提醒: "可以和梨山高山茶一起比較，喝喝看兩座山的差別。"
+  },
+  {
+    名稱: "四季春", 有貨: true, 類型: "烏龍",
+    產地: "台灣",
+    特性: "台灣自然雜交出來的品種，生命力強，一年四季都能採收。香氣奔放，是很受歡迎的日常茶。",
+    風味: ["濃郁花香", "梔子花", "甘爽"],
+    口感: "一打開就花香撲鼻，茶湯清爽甘甜，非常耐泡。",
+    沖泡: { 水溫: "95°C", 茶量: "5 g", 水量: "150 ml", 時間: "45 秒", 回沖: "5–7 次" },
+    簡易: "冷泡最推薦：10 g 茶葉＋1 公升冷開水，冰箱放 6–8 小時。",
+    提醒: "夏天想喝冰的，選它就對了。"
+  },
+  {
+    名稱: "慕耕活日月紅十八", 有貨: true, 類型: "紅茶",
+    產地: "台灣・南投日月潭（慕耕活）",
+    特性: "台灣茶品牌「慕耕活 Morganhope」的台茶 18 號紅玉紅茶。",
+    風味: ["肉桂香", "薄荷涼感", "甜潤"],
+    口感: "紅玉的招牌肉桂與薄荷香，茶湯紅亮、口感甘甜順口。",
+    沖泡: { 水溫: "90–95°C", 茶量: "3 g", 水量: "150 ml", 時間: "40 秒", 回沖: "4 次" },
+    簡易: "馬克杯：3 g＋300 ml 熱水，2–3 分鐘撈起。",
+    提醒: "家裡有兩款紅玉，可以一起泡來比較看看！"
+  },
+  {
+    名稱: "福壽山葡萄鳳凰茶", 有貨: true, 類型: "烏龍",
+    產地: "台灣・台中福壽山",
+    特性: "產自福壽山，海拔約 2300–2500 公尺，是台灣最高的茶區之一，產量稀少。",
+    風味: ["果香", "高山清香", "甘甜"],
+    口感: "茶湯清亮，入口甜潤，帶有明顯的果香與高山茶的細緻感。",
+    沖泡: { 水溫: "90–95°C", 茶量: "5 g", 水量: "150 ml", 時間: "50–60 秒", 回沖: "6–7 次" },
+    簡易: "馬克杯：4 g＋300 ml 熱水，泡 4 分鐘撈起。",
+    提醒: "珍貴的茶，建議用小壺慢慢泡，才喝得出層次。"
+  },
+  {
+    名稱: "紅烏龍", 有貨: true, 類型: "烏龍",
+    產地: "台灣・台東鹿野",
+    版本: ["頂級", "特級", "蜜香"],
+    特性: "台東鹿野的特色茶，發酵程度很重、接近紅茶，茶湯像紅茶一樣橙紅，卻保有烏龍茶的焙火與花果香。",
+    風味: ["熟果香", "蜜香", "微焙火"],
+    口感: "茶湯橙紅明亮，口感醇厚甘甜，帶熟果與淡淡焙火香。蜜香款的蜂蜜香氣更明顯。",
+    沖泡: { 水溫: "95–100°C", 茶量: "5 g", 水量: "150 ml", 時間: "45 秒", 回沖: "5–6 次" },
+    簡易: "馬克杯：4 g＋300 ml 滾水，泡 3 分鐘撈起。",
+    提醒: "家裡有三個等級，可以說說你想喝哪一種！"
+  },
+];
+/* ============================ 資料區結束 ============================ */
+</script>
+<style>
+:root{
+  --bg:#17110d; --bg2:#231912; --paper:#f3ead8; --paper2:#e8dcc3;
+  --ink:#2a1d14; --muted:#8a7660; --gold:#c9a25e;
+  --green:#5e7b3a; --oolong:#b07a2e; --red:#8e2f24;
+  --canW:150px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Noto Sans TC",system-ui,sans-serif; color:var(--paper);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 35%, #3a2a1c 0%, transparent 70%),
+    radial-gradient(ellipse at 50% 120%, #2c1e14 0%, var(--bg) 60%);
+  background-color:var(--bg);
+  min-height:100vh; overflow-x:hidden;
+  display:flex; flex-direction:column;
+}
+body::before{ /* paper grain */
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.08; z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+header{position:relative;z-index:1;text-align:center;padding:clamp(28px,6vh,64px) 20px 8px}
+.eyebrow{font-size:13px;letter-spacing:.5em;color:var(--gold);opacity:0;animation:fadeUp .8s .1s forwards}
+h1{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(30px,6vw,52px);letter-spacing:.12em;margin-top:10px;opacity:0;animation:fadeUp .8s .25s forwards}
+.sub{color:#bfae95;margin-top:10px;font-size:15px;opacity:0;animation:fadeUp .8s .4s forwards}
+.sub b{color:var(--paper);font-weight:700}
+
+.filters{position:relative;z-index:1;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:22px 16px 0;opacity:0;animation:fadeUp .8s .55s forwards}
+.chip{font:inherit;font-size:14px;color:#d8c8ad;background:rgba(255,255,255,.04);border:1px solid rgba(201,162,94,.3);padding:7px 16px;border-radius:999px;cursor:pointer;transition:.25s}
+.chip:hover{border-color:var(--gold);color:var(--paper)}
+.chip.on{background:var(--gold);color:var(--ink);border-color:var(--gold);font-weight:700}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+
+/* ---------- shelf / carousel ---------- */
+.stage{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;justify-content:center;min-height:480px}
+.track{
+  display:flex; gap:clamp(18px,4vw,40px); align-items:flex-end;
+  overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory;
+  padding:60px calc(50% - var(--canW)/2) 34px;
+  scrollbar-width:none; cursor:grab; perspective:900px;
+  -webkit-overflow-scrolling:touch;
+}
+.track::-webkit-scrollbar{display:none}
+.track.dragging{cursor:grabbing;scroll-snap-type:none}
+.shelf{position:absolute;left:0;right:0;bottom:22px;height:20px;pointer-events:none;
+  background:linear-gradient(#6b4a2e,#4a321f 40%,#2a1c11);
+  box-shadow:0 18px 40px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,220,170,.25)}
+.shelf::after{content:"";position:absolute;left:0;right:0;top:100%;height:60px;background:linear-gradient(rgba(0,0,0,.45),transparent)}
+
+.can-wrap{flex:0 0 var(--canW);scroll-snap-align:center;position:relative;z-index:2;
+  transform-origin:50% 100%; will-change:transform; outline:none;
+  opacity:0; animation:canIn .7s cubic-bezier(.2,.8,.2,1.1) forwards}
+.can-btn{all:unset;display:block;width:100%;cursor:pointer;position:relative}
+.can-btn:focus-visible .can{outline:2px solid var(--gold);outline-offset:6px}
+.can{position:relative;height:290px;animation:bob 5s ease-in-out infinite}
+.can-wrap:nth-child(2n) .can{animation-delay:-1.3s}
+.can-wrap:nth-child(3n) .can{animation-delay:-2.6s}
+
+.lid{position:absolute;left:-4%;right:-4%;top:0;height:34px;border-radius:10px 10px 4px 4px;
+  background:linear-gradient(90deg, rgba(0,0,0,.35), rgba(255,255,255,.18) 30%, rgba(255,255,255,.04) 55%, rgba(0,0,0,.4)), var(--c);
+  box-shadow:0 3px 0 rgba(0,0,0,.35), inset 0 2px 0 rgba(255,255,255,.25);
+  transition:transform .55s cubic-bezier(.3,1.6,.5,1); z-index:3}
+.lid::before{content:"";position:absolute;left:8%;right:8%;top:-7px;height:10px;border-radius:50%;
+  background:linear-gradient(90deg, rgba(0,0,0,.25), rgba(255,255,255,.25), rgba(0,0,0,.25)), var(--c);filter:brightness(1.15)}
+.body{position:absolute;left:0;right:0;top:30px;bottom:0;border-radius:6px 6px 14px 14px;overflow:hidden;
+  background:linear-gradient(90deg, rgba(0,0,0,.45) 0%, rgba(255,255,255,.16) 22%, rgba(255,255,255,.05) 45%, rgba(0,0,0,.08) 70%, rgba(0,0,0,.55) 100%), var(--c);
+  box-shadow:0 22px 30px -10px rgba(0,0,0,.7)}
+.label{position:absolute;left:12%;right:12%;top:24px;bottom:26px;
+  background:linear-gradient(90deg, rgba(0,0,0,.12), transparent 25%, transparent 70%, rgba(0,0,0,.18)), var(--paper);
+  border-radius:2px; display:flex; flex-direction:column; align-items:center; padding:12px 0 10px;
+  box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+.label::before,.label::after{content:"";position:absolute;left:0;right:0;height:6px;background:var(--c);opacity:.85}
+.label::before{top:0}.label::after{bottom:0}
+.tag{font-size:11px;letter-spacing:.2em;color:#fff;background:var(--c);padding:2px 6px;border-radius:2px;margin-top:4px;writing-mode:horizontal-tb;filter:brightness(.9)}
+.name{flex:1;writing-mode:vertical-rl;font-family:"Noto Serif TC",serif;font-weight:900;color:var(--ink);
+  letter-spacing:.12em;line-height:1.1;margin-top:10px;display:flex;align-items:center;justify-content:center;text-align:center}
+.seal{width:22px;height:22px;border:1.5px solid #b3402e;color:#b3402e;border-radius:3px;font-size:11px;display:grid;place-items:center;font-family:"Noto Serif TC",serif;font-weight:700;transform:rotate(-6deg)}
+.bands{position:absolute;left:0;right:0;bottom:8px;height:3px;background:rgba(255,255,255,.18)}
+.can-wrap.out .can{filter:grayscale(1) brightness(.6)}
+.can-wrap.out .seal{border-color:#666;color:#666}
+.out-badge{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);z-index:5;background:#111c;color:#eee;padding:4px 10px;font-size:13px;letter-spacing:.2em;border:1px solid #888;white-space:nowrap}
+
+.can-btn:hover .lid{transform:translateY(-6px)}
+.can-wrap.opening .lid{transform:translate(18px,-46px) rotate(18deg)}
+.can-wrap.opening .can{animation:none}
+
+.caption{text-align:center;margin-top:12px;min-height:46px;position:relative;z-index:1}
+.caption .cn{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:700;letter-spacing:.1em;transition:opacity .25s}
+.caption .meta{font-size:13px;color:#bfae95;margin-top:4px}
+
+.nav{position:absolute;top:44%;transform:translateY(-50%);z-index:3;width:46px;height:46px;border-radius:50%;
+  border:1px solid rgba(201,162,94,.45);background:rgba(23,17,13,.7);color:var(--gold);font-size:20px;cursor:pointer;backdrop-filter:blur(4px);transition:.2s}
+.nav:hover{background:var(--gold);color:var(--ink)}
+.nav.prev{left:max(12px,calc(50% - 470px))}.nav.next{right:max(12px,calc(50% - 470px))}
+@media (hover:none){.nav{display:none}}
+
+footer{position:relative;z-index:1;text-align:center;padding:10px 16px 26px;color:#8f7d66;font-size:13px}
+.random{font:inherit;margin-bottom:12px;background:none;border:1px dashed rgba(201,162,94,.55);color:var(--gold);padding:9px 20px;border-radius:999px;cursor:pointer;font-size:14px;transition:.2s}
+.random:hover{background:rgba(201,162,94,.12)}
+.hint{display:block;letter-spacing:.15em}
+.hint span{display:inline-block;animation:swipe 2.4s ease-in-out infinite}
+
+/* ---------- detail sheet ---------- */
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,7,5,.6);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .35s}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:21;left:50%;bottom:0;width:min(640px,100%);max-height:92vh;overflow-y:auto;
+  background:var(--paper);color:var(--ink);border-radius:22px 22px 0 0;
+  transform:translate(-50%,105%);transition:transform .55s cubic-bezier(.2,.9,.25,1);
+  box-shadow:0 -20px 60px rgba(0,0,0,.5)}
+@media (min-width:720px){.sheet{bottom:50%;border-radius:20px;transform:translate(-50%,calc(50% + 60px)) scale(.96);opacity:0;transition:transform .5s cubic-bezier(.2,.9,.25,1),opacity .35s}}
+.sheet.show{transform:translate(-50%,0)}
+@media (min-width:720px){.sheet.show{transform:translate(-50%,50%) scale(1);opacity:1}}
+.sheet-head{position:relative;padding:34px 28px 22px;color:#fff;overflow:hidden;
+  background:linear-gradient(135deg, rgba(255,255,255,.14), rgba(0,0,0,.25)), var(--c)}
+.sheet-head .grab{position:absolute;top:10px;left:50%;width:44px;height:4px;border-radius:4px;background:rgba(255,255,255,.5);transform:translateX(-50%)}
+@media (min-width:720px){.sheet-head .grab{display:none}}
+.close{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.25);color:#fff;font-size:18px;cursor:pointer;z-index:2}
+.close:hover{background:rgba(0,0,0,.45)}
+.sh-type{font-size:12px;letter-spacing:.35em;opacity:.85}
+.sh-name{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(26px,6vw,36px);letter-spacing:.08em;margin:6px 0 4px}
+.sh-origin{font-size:14px;opacity:.9}
+.versions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.versions span{font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35)}
+.cup{position:absolute;right:30px;bottom:-6px;width:110px;opacity:.95}
+.steam path{fill:none;stroke:rgba(255,255,255,.7);stroke-width:3;stroke-linecap:round;stroke-dasharray:60;stroke-dashoffset:60;animation:steam 2.6s ease-in-out infinite}
+.steam path:nth-child(2){animation-delay:.7s}.steam path:nth-child(3){animation-delay:1.4s}
+
+.sheet-body{padding:24px 28px 34px}
+.sec{opacity:0;transform:translateY(12px)}
+.sheet.show .sec{animation:fadeUp .5s forwards}
+.sheet.show .sec:nth-child(1){animation-delay:.25s}
+.sheet.show .sec:nth-child(2){animation-delay:.35s}
+.sheet.show .sec:nth-child(3){animation-delay:.45s}
+.sheet.show .sec:nth-child(4){animation-delay:.55s}
+.sec + .sec{margin-top:24px}
+.sec h3{font-family:"Noto Serif TC",serif;font-size:16px;letter-spacing:.2em;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sec h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#cdbb9b,transparent)}
+.sec p{line-height:1.85;font-size:15.5px}
+.flav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.flav span{font-size:14px;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--c) 14%,#fff);color:color-mix(in srgb,var(--c) 80%,#000);border:1px solid color-mix(in srgb,var(--c) 30%,transparent)}
+.brew{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:480px){.brew{grid-template-columns:repeat(2,1fr)}}
+.stat{background:#fff8ea;border:1px solid #e3d4b6;border-radius:12px;padding:12px 10px;text-align:center}
+.stat .ic{font-size:20px}
+.stat .k{font-size:12px;color:var(--muted);letter-spacing:.15em;margin-top:2px}
+.stat .v{font-weight:700;font-size:15px;margin-top:2px;color:color-mix(in srgb,var(--c) 75%,#000)}
+.extra{margin-top:10px;font-size:14.5px;line-height:1.75;color:#4b3a2c}
+.extra div{padding:8px 0;border-top:1px dashed #d8c7a6}
+.extra b{color:var(--ink)}
+.tip{margin-top:12px;padding:12px 14px;border-radius:10px;background:color-mix(in srgb,var(--c) 10%,#fff6e4);border-left:4px solid var(--c);font-size:14.5px;line-height:1.7}
+
+.empty{text-align:center;color:#bfae95;padding:80px 20px;font-size:15px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes canIn{from{opacity:0;translate:0 60px}to{opacity:1;translate:0 0}}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -6px}}
+@keyframes swipe{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+@keyframes steam{0%{stroke-dashoffset:60;opacity:0}30%{opacity:1}100%{stroke-dashoffset:-60;opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">家　中　茶　櫃</div>
+  <h1>今天，想喝哪一罐？</h1>
+  <p class="sub" id="count"></p>
+</header>
+
+<div class="filters" id="filters"></div>
+
+<main class="stage">
+  <button class="nav prev" id="prev" aria-label="上一罐">‹</button>
+  <div class="track" id="track" aria-label="茶罐列表"></div>
+  <div class="shelf"></div>
+  <button class="nav next" id="next" aria-label="下一罐">›</button>
+</main>
+<div class="caption" id="caption"><div class="cn"></div><div class="meta"></div></div>
+
+<footer>
+  <button class="random" id="random">🎲 不知道喝什麼？幫我選</button>
+  <span class="hint"><span>← 左右滑動 →</span>　點茶罐看介紹與泡法</span>
+</footer>
+
+<div class="overlay" id="overlay"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shName"></section>
+
+<script>
+const COLORS = { "綠茶":"#5e7b3a", "烏龍":"#b07a2e", "紅茶":"#8e2f24" };
+const SEAL   = { "綠茶":"綠", "烏龍":"烏", "紅茶":"紅" };
+const shade = (hex, amt) => { // slight per-can variation
+  const n = parseInt(hex.slice(1),16);
+  let r=(n>>16)+amt, g=((n>>8)&255)+amt, b=(n&255)+amt;
+  const c=v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,"0");
+  return "#"+c(r)+c(g)+c(b);
+};
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+const teas = 茶單.filter(t => t && t.名稱 && (t.有貨 !== false || 顯示喝完的茶))
+  .map((t,i) => ({...t, _out: t.有貨 === false,
+    _c: t.罐色 || shade(COLORS[t.類型] || "#7a5a3a", ((i*37)%5 - 2) * 9)}));
+const inStock = teas.filter(t => !t._out);
+
+const track = document.getElementById("track");
+const caption = document.getElementById("caption");
+let filter = "全部", current = [], centerIdx = 0;
+
+document.getElementById("count").innerHTML =
+  `目前有 <b>${inStock.length}</b> 款茶可以喝`;
+
+// filters
+const cats = ["全部", ...Object.keys(COLORS).filter(k => teas.some(t => t.類型 === k))];
+const fWrap = document.getElementById("filters");
+fWrap.innerHTML = cats.map(c => `<button class="chip${c==="全部"?" on":""}" data-c="${c}">${
+  c==="全部" ? "" : `<i class="dot" style="background:${COLORS[c]}"></i>`}${c}${
+  c==="全部" ? "" : `<small style="opacity:.6"> ${teas.filter(t=>t.類型===c).length}</small>`}</button>`).join("");
+fWrap.addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  fWrap.querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x===b));
+  filter = b.dataset.c; render();
+});
+
+function nameSize(n){ const L=[...n].length; return L<=7 ? Math.min(30, Math.floor(128/(L*1.15))) : Math.min(22, Math.floor(128/(Math.ceil(L/2)*1.15))); }
+
+function render(){
+  current = teas.filter(t => filter==="全部" || t.類型===filter);
+  if(!current.length){ track.innerHTML = `<div class="empty">這一類的茶目前喝完囉</div>`; return; }
+  track.innerHTML = current.map((t,i) => `
+    <div class="can-wrap${t._out?" out":""}" style="--c:${t._c};animation-delay:${Math.min(i,8)*70}ms" data-i="${i}">
+      <button class="can-btn" aria-label="${esc(t.名稱)}，${esc(t.類型)}">
+        <div class="can">
+          <div class="lid"></div>
+          <div class="body">
+            <div class="label">
+              <span class="seal">${SEAL[t.類型]||"茶"}</span>
+              <span class="name" style="font-size:${nameSize(t.名稱)}px;${[...t.名稱].length<=7?"white-space:nowrap;":""}">${esc(t.名稱)}</span>
+              <span class="tag">${esc(t.類型)}</span>
+            </div>
+            <div class="bands"></div>
+          </div>
+        </div>
+        ${t._out?'<span class="out-badge">已喝完</span>':""}
+      </button>
+    </div>`).join("");
+  track.scrollLeft = 0;
+  requestAnimationFrame(update);
+}
+
+// 3D coverflow effect
+function update(){
+  const wraps = track.querySelectorAll(".can-wrap");
+  if(!wraps.length) return;
+  const mid = track.getBoundingClientRect().left + track.clientWidth/2;
+  let best = 0, bestD = Infinity;
+  wraps.forEach((w,i) => {
+    const r = w.getBoundingClientRect();
+    const d = (r.left + r.width/2 - mid) / (r.width + 40);
+    const a = Math.abs(d);
+    if(a < bestD){ bestD = a; best = i; }
+    const k = Math.min(a, 3);
+    w.style.transform = `translateY(${k*14}px) scale(${1.12 - k*0.11}) rotateY(${Math.max(-14,Math.min(14,-d*7))}deg)`;
+    w.style.zIndex = 10 - Math.round(k*3);
+    w.style.filter = `brightness(${1 - k*0.16})`;
+  });
+  if(best !== centerIdx || !caption.dataset.set){
+    centerIdx = best; caption.dataset.set = 1;
+    const t = current[best];
+    caption.querySelector(".cn").textContent = t.名稱;
+    caption.querySelector(".meta").textContent = `${t.類型}・${t.產地 || ""}${t._out?"・已喝完":""}`;
+  }
+}
+let ticking=false;
+track.addEventListener("scroll", () => { if(!ticking){ ticking=true; requestAnimationFrame(()=>{update();ticking=false;}); } }, {passive:true});
+window.addEventListener("resize", update);
+
+function scrollToIdx(i, smooth=true){
+  const w = track.querySelectorAll(".can-wrap")[i]; if(!w) return;
+  const target = w.offsetLeft + w.offsetWidth/2 - track.clientWidth/2;
+  track.scrollTo({left:target, behavior: smooth?"smooth":"auto"});
+}
+document.getElementById("prev").onclick = () => scrollToIdx(Math.max(0, centerIdx-1));
+document.getElementById("next").onclick = () => scrollToIdx(Math.min(current.length-1, centerIdx+1));
+
+// wheel → horizontal
+track.addEventListener("wheel", e => {
+  if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){ e.preventDefault(); track.scrollLeft += e.deltaY; }
+}, {passive:false});
+
+// mouse drag (desktop)
+let down=false, sx=0, sl=0, moved=0;
+track.addEventListener("pointerdown", e => {
+  if(e.pointerType !== "mouse") return;
+  down=true; moved=0; sx=e.clientX; sl=track.scrollLeft;
+});
+window.addEventListener("pointermove", e => {
+  if(!down) return;
+  const dx = e.clientX - sx; moved = Math.max(moved, Math.abs(dx));
+  if(moved > 5) track.classList.add("dragging");
+  track.scrollLeft = sl - dx;
+});
+window.addEventListener("pointerup", () => {
+  if(!down) return; down=false;
+  if(track.classList.contains("dragging")){
+    track.classList.remove("dragging");
+    setTimeout(()=>scrollToIdx(centerIdx), 10);
+  }
+});
+
+// click a can
+track.addEventListener("click", e => {
+  const w = e.target.closest(".can-wrap"); if(!w) return;
+  if(moved > 5){ moved = 0; return; }
+  const i = +w.dataset.i;
+  if(i !== centerIdx){ scrollToIdx(i); setTimeout(()=>openTea(i), 380); }
+  else openTea(i);
+});
+
+// keyboard
+document.addEventListener("keydown", e => {
+  if(sheet.classList.contains("show")){ if(e.key==="Escape") closeTea(); return; }
+  if(e.key==="ArrowRight") document.getElementById("next").click();
+  if(e.key==="ArrowLeft")  document.getElementById("prev").click();
+});
+
+// random pick
+document.getElementById("random").onclick = () => {
+  const pool = current.map((t,i)=>[t,i]).filter(([t])=>!t._out);
+  if(!pool.length) return;
+  let i = pool[Math.floor(Math.random()*pool.length)][1];
+  if(pool.length>1 && i===centerIdx) i = pool[(pool.findIndex(p=>p[1]===i)+1)%pool.length][1];
+  scrollToIdx(i);
+  setTimeout(()=>openTea(i), 750);
+};
+
+// ---------- detail sheet ----------
+const sheet = document.getElementById("sheet"), overlay = document.getElementById("overlay");
+let openWrap = null;
+function openTea(i){
+  const t = current[i]; if(!t) return;
+  openWrap = track.querySelectorAll(".can-wrap")[i];
+  openWrap?.classList.add("opening");
+  const b = t.沖泡 || {};
+  const stats = [["🌡️","水溫",b.水溫],["🍃","茶量",b.茶量],["💧","水量",b.水量],["⏱️","第一泡",b.時間]].filter(s=>s[2]);
+  sheet.style.setProperty("--c", t._c);
+  sheet.innerHTML = `
+    <div class="sheet-head">
+      <span class="grab"></span>
+      <button class="close" aria-label="關閉">✕</button>
+      <div class="sh-type">${esc(t.類型)}${t._out?"・已喝完":""}</div>
+      <h2 class="sh-name" id="shName">${esc(t.名稱)}</h2>
+      <div class="sh-origin">📍 ${esc(t.產地)}</div>
+      ${t.版本?.length ? `<div class="versions">${t.版本.map(v=>`<span>${esc(v)}</span>`).join("")}</div>` : ""}
+      <svg class="cup" viewBox="0 0 120 110" aria-hidden="true">
+        <g class="steam"><path d="M42 48c-8-10 8-16 0-28"/><path d="M60 48c-8-10 8-16 0-28"/><path d="M78 48c-8-10 8-16 0-28"/></g>
+        <path d="M22 58h76c0 26-16 44-38 44S22 84 22 58z" fill="rgba(255,255,255,.9)"/>
+        <ellipse cx="60" cy="58" rx="38" ry="6" fill="rgba(0,0,0,.18)"/>
+        <path d="M98 64c14 0 14 18 0 18" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="5"/>
+      </svg>
+    </div>
+    <div class="sheet-body">
+      <div class="sec"><h3>特性</h3><p>${esc(t.特性)}</p></div>
+      <div class="sec"><h3>味道</h3>
+        <div class="flav">${(t.風味||[]).map(f=>`<span>${esc(f)}</span>`).join("")}</div>
+        <p>${esc(t.口感)}</p></div>
+      <div class="sec"><h3>如何沖泡</h3>
+        <div class="brew">${stats.map(s=>`<div class="stat"><div class="ic">${s[0]}</div><div class="k">${s[1]}</div><div class="v">${esc(s[2])}</div></div>`).join("")}</div>
+        <div class="extra">
+          ${b.回沖?`<div><b>可回沖：</b>${esc(b.回沖)}</div>`:""}
+          ${t.簡易?`<div><b>懶人泡法：</b>${esc(t.簡易)}</div>`:""}
+        </div>
+        ${t.提醒?`<div class="tip">💡 ${esc(t.提醒)}</div>`:""}
+      </div>
+    </div>`;
+  sheet.querySelector(".close").onclick = closeTea;
+  setTimeout(()=>{ overlay.classList.add("show"); sheet.classList.add("show"); sheet.scrollTop=0; sheet.querySelector(".close").focus({preventScroll:true}); }, 260);
+}
+function closeTea(){
+  sheet.classList.remove("show"); overlay.classList.remove("show");
+  setTimeout(()=>openWrap?.classList.remove("opening"), 200);
+}
+overlay.onclick = closeTea;
+
+// swipe down to close on mobile
+let ty=null;
+sheet.addEventListener("touchstart", e => { if(sheet.scrollTop<=0) ty=e.touches[0].clientY; }, {passive:true});
+sheet.addEventListener("touchmove", e => { if(ty!==null && e.touches[0].clientY-ty>90){ ty=null; closeTea(); } }, {passive:true});
+sheet.addEventListener("touchend", () => ty=null);
+
+render();
+</script>
+</body>
+</html>
